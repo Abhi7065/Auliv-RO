@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://abhi7065.github.io/Auliv-RO/sitemap.xml

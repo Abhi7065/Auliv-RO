@@ -1,0 +1,20 @@
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {build} from 'vite';
+import react from '@vitejs/plugin-react';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const temporary=path.join(root,'work','github-pages-entry');
+const backend='https://auliv-ro-care.dreamycoin1024.chatgpt.site';
+mkdirSync(temporary,{recursive:true});
+// Reuse the public storefront; keep the dashboard and all private data server-side.
+let storefront=readFileSync(path.join(root,'app','storefront.tsx'),'utf8');
+storefront=storefront.replace("fetch('/api/enquiries'",`fetch('${backend}/api/enquiries'`).replaceAll('href="/privacy"',`href="${backend}/privacy"`).replaceAll('href="/admin"',`href="${backend}/admin"`).replaceAll('href="/"','href="./"');
+writeFileSync(path.join(temporary,'storefront.tsx'),storefront);
+writeFileSync(path.join(temporary,'main.tsx'),`import React from 'react';import {createRoot} from 'react-dom/client';import Storefront from './storefront';import '../../app/globals.css';createRoot(document.getElementById('root')!).render(<Storefront/>);`);
+writeFileSync(path.join(temporary,'index.html'),`<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#087e83"><meta name="description" content="Discover Auliv water purifiers and expert after-sales care for all RO brands in Delhi NCR."><title>Auliv RO’s | Water Purifiers & Care for Every Brand</title><link rel="icon" href="./favicon.svg"><link rel="canonical" href="https://abhi7065.github.io/Auliv-RO/"></head><body><div id="root"></div><script type="module" src="./main.tsx"></script></body></html>`);
+await build({configFile:false,root:temporary,base:'/Auliv-RO/',publicDir:path.join(root,'public'),plugins:[react()],build:{outDir:path.join(root,'docs'),emptyOutDir:true},css:{postcss:path.join(root,'postcss.config.mjs')}});
+writeFileSync(path.join(root,'docs','.nojekyll'),'');
+writeFileSync(path.join(root,'docs','robots.txt'),'User-agent: *\nAllow: /\nSitemap: https://abhi7065.github.io/Auliv-RO/sitemap.xml\n');
+writeFileSync(path.join(root,'docs','sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://abhi7065.github.io/Auliv-RO/</loc></url></urlset>');
+console.log('GitHub Pages storefront built in docs/. Bookings use the existing hosted API.');
